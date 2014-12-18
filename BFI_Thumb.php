@@ -415,8 +415,25 @@ class BFI_Thumb_1_3 {
         } else if (strpos($url, $theme_url) !== false) {
             $rel_path = str_replace( $theme_url, '', $url);
             $img_path = $theme_dir . $rel_path;
-        }
+        } elseif ( is_multisite() ) {
+            $parse_url = parse_url( $url );
 
+            // create file img path
+            list( $tmp, $rel_path ) = explode( 'uploads', $parse_url['path'] );
+            $img_path = $upload_dir . $rel_path;
+
+            // create new upload_dir path
+            $tmp_path_info = pathinfo( $img_path );
+            $tmp_path_info = explode( '/', $tmp_path_info['dirname'] );
+            $stmp          = array_pop( $tmp_path_info ); // remove month num
+            $stmp          = array_pop( $tmp_path_info ); // remove year num
+            $upload_dir    = implode( '/', $tmp_path_info ); // new path
+
+            // create new $upload_url url
+            list( $tmp, $rel_path ) = explode( 'wp-content', $upload_dir );
+            $upload_url = $parse_url['scheme'] . '://' . $parse_url['host'] . '/wp-content' . $rel_path;
+        }
+        
         // Fail if we can't find the image in our WP local directory
         if ( empty( $img_path ) ) return $url;
 
